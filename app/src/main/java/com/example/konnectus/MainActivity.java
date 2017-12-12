@@ -34,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
         SongAdapter songAdt = new SongAdapter(this, songList);
         songView.setAdapter(songAdt);
 
-        
+
     }
 
     public void getSongList() {
