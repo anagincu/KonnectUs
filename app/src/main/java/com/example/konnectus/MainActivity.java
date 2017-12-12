@@ -1,19 +1,28 @@
 package com.example.konnectus;
 
-import android.support.v7.app.AppCompatActivity;
+import android.content.*;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.IBinder;
+import android.support.v7.app.AppCompatActivity;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.ListView;
+import com.example.konnectus.MusicService.MusicBinder;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import android.net.Uri;
-import android.content.ContentResolver;
-import android.database.Cursor;
-import android.widget.ListView;
 
 public class MainActivity extends AppCompatActivity {
 
     private ArrayList<Song> songList;
     private ListView songView;
+    //declared new instance for the MusicService
+    private MusicService musicSrv;
+    private Intent playIntent;
+    private boolean musicBound=false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,6 +45,64 @@ public class MainActivity extends AppCompatActivity {
 
 
     }
+
+    public void songPicked(View view){
+        musicSrv.setSong(Integer.parseInt(view.getTag().toString()));
+        musicSrv.playSong();
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        //menu item selected
+        switch (item.getItemId()) {
+            case R.id.action_shuffle:
+                //shuffle
+                break;
+            case R.id.action_end:
+                stopService(playIntent);
+                musicSrv=null;
+                System.exit(0);
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if(playIntent==null){
+            playIntent = new Intent(this, MusicService.class);
+            bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE);
+            startService(playIntent);
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        stopService(playIntent);
+        musicSrv=null;
+        super.onDestroy();
+    }
+
+
+    //connect to the service
+    private ServiceConnection musicConnection = new ServiceConnection(){
+
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            MusicBinder binder = (MusicBinder)service;
+            //get service
+            musicSrv = binder.getService();
+            //pass list
+            musicSrv.setList(songList);
+            musicBound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            musicBound = false;
+        }
+    };
 
     public void getSongList() {
         //retrieve song info
