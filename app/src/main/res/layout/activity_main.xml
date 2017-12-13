@@ -6,6 +6,7 @@
               android:orientation="vertical"
               android:background="#FF330000"
               tools:context=".MainActivity" >
+    //includes a ListView in which we will present the list of songs
 
     <ListView
             android:id="@+id/song_list"
